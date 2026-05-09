@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>رحلتنا | ١٠ شهور</title>
+<link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  background:#000;
+  font-family:'Amiri', serif;
+  overflow:hidden;
+  user-select:none;
+}
+
+/* ===== CINEMATIC LETTERBOX BARS ===== */
+.bar-top, .bar-bot {
+  position: fixed;
+  left:0; right:0;
+  height: 70px;
+  background: #000;
+  z-index: 200;
+  transition: height 2s cubic-bezier(0.4,0,0.2,1);
+}
+.bar-top { top:0; }
+.bar-bot { bottom:0; }
+.bar-top.open, .bar-bot.open { height:0; }
+
+/* ===== FADE OVERLAY ===== */
+#fadeOverlay {
+  position: fixed;
+  inset:0;
+  background:#000;
+  z-index:190;
+  opacity:1;
+  transition: opacity 3.5s ease;
+  pointer-events:none;
+}
+#fadeOverlay.gone { opacity:0; }
+
+/* ===== VIDEO BACKGROUND ===== */
+#roadVideo {
+  position: fixed;
+  inset:0;
+  width:100%; height:100%;
+  object-fit: cover;
+  z-index:1;
+  filter: brightness(0.55) saturate(0.85);
+}
+
+/* ===== VIGNETTE + FILM GRAIN ===== */
+.vignette {
+  position: fixed;
+  inset:0;
+  background: radial-gradient(ellipse at 50% 50%,
+    transparent 40%,
+    rgba(0,0,0,0.55) 75%,
+    rgba(0,0,0,0.85) 100%);
+  z-index:2;
+  pointer-events:none;
+}
+.grain {
+  position: fixed;
+  inset:0;
+  z-index:3;
+  opacity:0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events:none;
+  animation: grainShift 0.08s steps(1) infinite;
+}
+@keyframes grainShift {
+  0%  { transform:translate(0,0); }
+  25% { transform:translate(1px,-1px); }
+  50% { transform:translate(-1px,1px); }
+  75% { transform:translate(1px,1px); }
+}
+
+/* ===== DASHBOARD OVERLAY ===== */
+.dashboard {
+  position: fixed;
+  bottom:0; left:0; right:0;
+  height: 160px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(5,3,2,0.6) 30%,
+    rgba(5,3,2,0.92) 65%,
+    #050302 100%);
+  z-index: 10;
+  pointer-events:none;
+}
+.steering {
+  position: fixed;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 6px solid rgba(255,255,255,0.06);
+  z-index:11;
+  pointer-events:none;
+  animation: steerSway 6s ease-in-out infinite;
+}
+.steering::before {
+  content:'';
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:40px; height:40px;
+  border-radius:50%;
+  border:4px solid rgba(255,255,255,0.06);
+}
+.steering::after {
+  content:'';
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:2px; height:70px;
+  background:rgba(255,255,255,0.06);
+  margin-top:-35px;
+}
+@keyframes steerSway {
+  0%,100%{ transform:translateX(-50%) rotate(-3deg); }
+  50%    { transform:translateX(-50%) rotate(3deg); }
+}
+.speedo {
+  position: fixed;
+  bottom: 30px; left: 60px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,180,50,0.08);
+  z-index: 12;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:2px;
+}
+.speedo-num {
+  font-family: 'Courier New', monospace;
+  font-size:1.1rem;
+  color:rgba(255,180,50,0.25);
+  line-height:1;
+}
+.speedo-unit {
+  font-size:0.45rem;
+  color:rgba(255,180,50,0.18);
+  letter-spacing:0.1em;
+}
+.car-time {
+  position: fixed;
+  bottom: 44px; right: 60px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: rgba(255,200,100,0.2);
+  z-index:12;
+  pointer-events:none;
+  letter-spacing:0.15em;
+}
+
+/* ===== MAIN CONTENT AREA ===== */
+#content {
+  position: fixed;
+  inset:0;
+  z-index: 20;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding: 80px 24px 180px;
+  pointer-events: none;
+}
+
+/* ===== MESSAGE BUBBLE ===== */
+.bubble-wrap {
+  width: min(560px, 94vw);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  pointer-events:none;
+}
+.msg-him {
+  align-self: flex-end;
+  max-width:88%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px 18px 4px 18px;
+  padding: 14px 18px;
+  backdrop-filter:blur(8px);
+  opacity:0;
+  transform:translateY(12px) translateX(12px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.34,1.2,0.64,1);
+}
+.msg-him.show { opacity:1; transform:translateY(0) translateX(0); }
+.msg-him p {
+  font-family:'Scheherazade New', serif;
+  font-size:clamp(1rem,2.4vw,1.2rem);
+  color:rgba(255,240,220,0.92);
+  line-height:1.85;
+  text-align:right;
+  direction:rtl;
+}
+.msg-name-him {
+  font-size:0.62rem;
+  color:rgba(255,200,100,0.45);
+  letter-spacing:0.12em;
+  margin-bottom:6px;
+  text-align:right;
+}
+.msg-her {
+  align-self: flex-start;
+  max-width:80%;
+  background: rgba(200,130,180,0.1);
+  border: 1px solid rgba(200,130,180,0.2);
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 18px;
+  backdrop-filter:blur(8px);
+  opacity:0;
+  transform:translateY(12px) translateX(-12px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.34,1.2,0.64,1);
+}
+.msg-her.show { opacity:1; transform:translateY(0) translateX(0); }
+.msg-her p {
+  font-family:'Scheherazade New', serif;
+  font-size:clamp(0.95rem,2.2vw,1.12rem);
+  color:rgba(255,210,230,0.88);
+  line-height:1.85;
+  direction:rtl;
+}
+.msg-name-her {
+  font-size:0.62rem;
+  color:rgba(200,130,180,0.5);
+  letter-spacing:0.12em;
+  margin-bottom:6px;
+}
+.typing-indicator {
+  display:inline-flex;
+  gap:4px;
+  align-items:center;
+  padding:4px 2px;
+}
+.typing-indicator span {
+  width:6px; height:6px;
+  border-radius:50%;
+  background:rgba(200,130,180,0.6);
+  animation:typingDot 1.2s ease-in-out infinite;
+}
+.typing-indicator span:nth-child(2){ animation-delay:0.2s; }
+.typing-indicator span:nth-child(3){ animation-delay:0.4s; }
+@keyframes typingDot {
+  0%,100%{ transform:translateY(0); opacity:0.5; }
+  50%    { transform:translateY(-4px); opacity:1; }
+}
+.tcur {
+  display:inline-block;
+  width:2px; height:0.9em;
+  background:rgba(255,240,220,0.8);
+  vertical-align:middle;
+  animation:tcurBlink 0.8s step-end infinite;
+  margin-right:1px;
+}
+@keyframes tcurBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ===== CHOICES ===== */
+.choices {
+  width:min(560px,94vw);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:8px;
+  pointer-events:auto;
+  opacity:0;
+  transition:opacity 0.6s ease;
+  position: relative;
+  z-index: 30;
+}
+.choices.show { opacity:1; pointer-events:auto; }
+.choice-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 99px;
+  color: rgba(255,230,210,0.8);
+  font-family:'Scheherazade New',serif;
+  font-size:clamp(0.9rem,2.2vw,1.05rem);
+  padding: 11px 22px;
+  cursor:pointer;
+  text-align:center;
+  direction:rtl;
+  transition:all 0.25s;
+  backdrop-filter:blur(6px);
+}
+.choice-btn:hover {
+  background:rgba(200,130,180,0.12);
+  border-color:rgba(200,130,180,0.3);
+  color:rgba(255,210,230,0.95);
+  transform:scale(1.02);
+}
+
+/* ===== PROGRESS DOTS ===== */
+.progress-dots {
+  position:fixed;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  z-index:50;
+}
+.prog-dot {
+  width:5px; height:5px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  transition:all 0.4s;
+}
+.prog-dot.done {
+  background:rgba(255,200,100,0.7);
+  box-shadow:0 0 6px rgba(255,200,100,0.5);
+  transform:scale(1.3);
+}
+
+/* ===== OPENING SCENE TEXT ===== */
+.opening-text {
+  position:fixed;
+  inset:0;
+  z-index:150;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:16px;
+  opacity:0;
+  transition:opacity 1.5s ease;
+  pointer-events:none;
+}
+.opening-text.show { opacity:1; }
+.opening-text.hide { opacity:0; }
+.opening-line {
+  font-family:'Scheherazade New',serif;
+  font-size:clamp(1.1rem,3vw,1.6rem);
+  color:rgba(255,240,220,0.0);
+  text-align:center;
+  transition:color 2s ease;
+}
+.opening-line.lit { color:rgba(255,240,220,0.55); }
+
+/* ===== AMBIENT WAVE ===== */
+.ambient-wave {
+  position:fixed;
+  bottom:155px;
+  left:30px;
+  display:flex;
+  align-items:center;
+  gap:2px;
+  z-index:15;
+  opacity:0;
+  transition:opacity 1s ease;
+}
+.ambient-wave.show { opacity:0.35; }
+.aw-bar {
+  width:2px;
+  border-radius:99px;
+  background:rgba(255,180,80,0.7);
+  animation:awbar 1s ease-in-out infinite paused;
+}
+.aw-bar.play { animation-play-state:running; }
+@keyframes awbar { 0%,100%{transform:scaleY(0.2)} 50%{transform:scaleY(1)} }
+
+/* ===== RADIO الحب STYLES ===== */
+:root {
+  --cream: #f5ead6;
+  --amber: #c8862a;
+  --gold: #e8b84b;
+  --brown: #3d1f0a;
+  --dial-bg: #1a0e04;
+}
+#radioModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(12px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+  pointer-events: none;  /* ← أضف هذا السطر */
+}
+#radioModal.show {
+  opacity: 1;
+  visibility: visible;
+   pointer-events: auto;
+}
+.radio-cabinet {
+  width: min(480px, 92vw);
+  background: linear-gradient(160deg, #5c2a0e 0%, #3a1508 40%, #2a0e04 100%);
+  border-radius: 28px 28px 20px 20px;
+  padding: 24px 24px 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,200,100,0.15);
+  transform: scale(0.95);
+  transition: transform 0.4s ease;
+}
+#radioModal.show .radio-cabinet { transform: scale(1); }
+.brand-strip {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.brand-name {
+  font-family: 'Scheherazade New', serif;
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.35em;
+  opacity: 0.8;
+}
+.speaker-grille {
+  background: var(--dial-bg);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 2px solid #5a2a08;
+}
+.grille-lines {
+  display: grid;
+  grid-template-columns: repeat(18, 1fr);
+  gap: 2px;
+  height: 70px;
+}
+.grille-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  justify-content: center;
+}
+.grille-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #2a1205;
+}
+.display-panel {
+  background: linear-gradient(135deg, #0d1a08, #0a1206);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #2a4010;
+}
+.station-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.freq-number {
+  font-family: 'Courier New', monospace;
+  font-size: 1.4rem;
+  color: #80e840;
+  text-shadow: 0 0 10px rgba(80,220,40,0.8);
+  min-width: 80px;
+}
+.station-name-display {
+  font-size: 0.85rem;
+  color: #60c830;
+  flex: 1;
+  text-align: center;
+}
+.signal-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+.sig-bar {
+  width: 4px;
+  background: #40a020;
+  border-radius: 2px;
+}
+.sig-bar.active { background: #80e840; }
+.tuner-scale {
+  background: linear-gradient(180deg, #c8a050, #8a6020);
+  border-radius: 6px;
+  padding: 4px 10px;
+  margin-bottom: 16px;
+  height: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.scale-track {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.25,1,0.5,1);
+}
+.scale-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 28px;
+}
+.scale-mark .line.tall { height: 12px; width: 1px; background: var(--brown); }
+.scale-mark .line.short { height: 6px; width: 1px; background: var(--brown); }
+.scale-mark .freq-label { font-size: 0.45rem; color: var(--brown); font-family: monospace; }
+.tuner-needle {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(220,50,50,0.9), rgba(180,30,30,0.6));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.knob-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.knob-label {
+  font-size: 0.55rem;
+  color: var(--amber);
+}
+.knob {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6a3a15, #2a0e04);
+  border: 2px solid #7a4a18;
+  cursor: pointer;
+  position: relative;
+}
+.knob::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 10px;
+  background: var(--gold);
+  border-radius: 2px;
+  transform-origin: center 16px;
+}
+.knob.vol-knob::after { transform: translateX(-50%) rotate(var(--vol-angle, -90deg)); }
+.channels {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.ch-btn {
+  background: linear-gradient(180deg, #4a2008, #2a0e04);
+  border: 1px solid #6a3010;
+  border-radius: 6px;
+  color: var(--cream);
+  font-size: 0.7rem;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.ch-btn.active, .ch-btn:hover {
+  background: linear-gradient(180deg, #7a3a10, #4a1e08);
+  border-color: var(--amber);
+  color: var(--gold);
+}
+.play-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #8a3a10, #4a1e06);
+  border: 2px solid var(--amber);
+  color: var(--gold);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.play-btn.playing {
+  background: radial-gradient(circle at 35% 30%, #5a2a10, #3a1606);
+  box-shadow: 0 0 12px rgba(200,134,42,0.4);
+}
+.radio-feet {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-top: 12px;
+}
+.foot {
+  width: 25px; height: 6px;
+  background: linear-gradient(180deg, #3a1508, #1a0804);
+  border-radius: 0 0 6px 6px;
+}
+.station-message {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--cream);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.next-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.2);
+  z-index: 50;
+  animation: hintPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hintPulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+.road-light {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+  animation:roadLight 0.3s ease-in-out infinite alternate;
+}
+@keyframes roadLight { 0%{ background:rgba(255,200,80,0.0); } 100%{ background:rgba(255,200,80,0.015); } }
+.streak {
+  position:fixed;
+  top:0; bottom:0;
+  width:1px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,0.04),transparent);
+  z-index:2;
+  animation:streakMove linear infinite;
+}
+@keyframes streakMove {
+  from{ transform:translateX(0); opacity:0.5; }
+  to  { transform:translateX(-40px); opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="bar-top" id="barTop"></div>
+<div class="bar-bot" id="barBot"></div>
+<div id="fadeOverlay"></div>
+
+<div class="opening-text" id="openingText">
+  <div class="opening-line" id="ol1">١٠ أشهر</div>
+  <div class="opening-line" id="ol2" style="font-size:clamp(0.8rem,2vw,1rem);">رحلة ما انتهت</div>
+</div>
+
+<video id="roadVideo" src="road.mp4" autoplay muted loop playsinline></video>
+
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="road-light"></div>
+<div class="streak" style="left:15%;animation-duration:3s;"></div>
+<div class="streak" style="left:85%;animation-duration:4s;"></div>
+
+<div class="dashboard"></div>
+<div class="steering"></div>
+<div class="speedo"><div class="speedo-num" id="speedNum">--</div><div class="speedo-unit">km/h</div></div>
+<div class="car-time" id="carTime">--:--</div>
+
+<div class="progress-dots" id="progressDots"></div>
+<div class="ambient-wave" id="ambientWave"></div>
+
+<div id="content">
+  <div class="bubble-wrap" id="bubbleWrap"></div>
+  <div class="choices" id="choicesEl"></div>
+</div>
+
+<div class="next-hint" id="nextHint"></div>
+
+<!-- RADIO MODAL -->
+<div id="radioModal">
+  <div class="radio-cabinet">
+    <div class="brand-strip"><span class="brand-name">✦ الراديو  ✦</span></div>
+    <div class="speaker-grille">
+      <div class="grille-lines" id="grilleLinesModal"></div>
+    </div>
+    <div class="display-panel">
+      <div class="station-display">
+        <div class="freq-number" id="freqNumModal">88.4</div>
+        <div class="station-name-display" id="stationNameModal">— اختاري محطه —</div>
+        <div class="signal-bars" id="sigBarsModal"></div>
+      </div>
+    </div>
+    <div class="tuner-scale">
+      <div class="scale-track" id="scaleTrackModal"></div>
+      <div class="tuner-needle"></div>
+    </div>
+    <div class="controls-row">
+      <div class="knob-group"><div class="knob vol-knob" id="volKnobModal"></div><span class="knob-label">صوت</span></div>
+      <div class="channels" id="channelsModal"></div>
+      <button class="play-btn" id="playBtnModal">▶</button>
+    </div>
+    <div class="radio-feet"><div class="foot"></div><div class="foot"></div></div>
+    <div class="station-message" id="stationMsgModal">🎵 اختاري محطه/div>
+  </div>
+</div>
+
+<audio id="ambienceAudio" src="ambience.mp3" loop></audio>
+<audio id="songAudio" src="song.mp3" preload="auto"></audio>
+<audio id="radioClickAudio" src="radio.mp3" preload="auto"></audio>
+
+<script>
+// ===== HELPERS =====
+const $ = id => document.getElementById(id);
+let currentStep = 0;
+let typeTimer = null;
+let radioResolve = null;
+
+// Speed counter
+let fakeSpeed = 0;
+setInterval(()=>{ fakeSpeed = 95 + Math.round(Math.sin(Date.now()/4000)*18 + Math.random()*6); $('speedNum').textContent = fakeSpeed; },800);
+setInterval(()=>{ const n=new Date(); $('carTime').textContent = (n.getHours()%12||12)+':'+String(n.getMinutes()).padStart(2,'0'); },1000);
+
+// Ambient waveform
+const awEl = $('ambientWave');
+[6,10,14,18,22,18,14,10,6,8,14,20,24,20,14,8].forEach((h,i)=>{
+  const b=document.createElement('div'); b.className='aw-bar'; b.style.height=h+'px'; b.style.animationDelay=(i*0.06)+'s'; b.style.animationDuration=(0.7+Math.random()*0.5)+'s'; awEl.appendChild(b);
+});
+
+// ===== SCRIPT =====
+const SCRIPT = [
+  { type:'him', delay:0, text:'كما عودتج هذي رساله ال 10 شهور\nوالي فكرتها باذن الله انها تعجبج \nادري تاخرت عليج وكل شيء كان جاهز الا رسالتي لج' },
+  { type:'him', delay:1200, text:'وحاب اقولج مبروك علينا ال 10 شهور وعقبال العمر كله يارب\nومرت والله كانها اسبوع واذكر كل يوم فيها وكل تفصيله\nمو لان ما انسى لانج تعنيلي وكل ثانيه معاج تهمني' },
+  { type:'her', delay:2000, text:'فعلا والله \nالوقت مر' },
+  { type:'him', delay:1500, text:'شرايج\nنشغل شيء' },
+  { type:'choices', question:'', options:[
+    { text:'ليش لا', next: 'radio' },
+    { text:'مجهزلي شيء ؟', next: 'radio' },
+    { text:'اممم', next: 'radio' }
+  ]},
+  { type:'him', delay:3000, text:'كبرنا مع بعض فيها صح انها ماتعني للوقت مده كبيره بس والله اني اشوف كبرت فيها مو بس بالعمر كبرنا فيها بكل شيء\nعرفنا بعض اكثر وعرفت شنو يعني الدنيا معاج وبدونج \nانتي علمتيني عليها ولا ماكنت اعرفها اشكرج لانج كنتي معاي فيها واتمنى اني كنت لج فيها مثل ماكنتي لي ' },
+  { type:'him', delay:1400, text:'وحاب اشرح لج شكثر احبج مع انه مهما حاولت ماراح اقدر اوصل لج شكر احبج \nواحب وجودج وما اخفيج شكثر يعنيلي \n' },
+  { type:'choices', question:'', options:[
+    { text:'اممم', next: 8 },
+    { text:'انا  بعد نفس الشيء ', next: 8 },
+    { text:'امم', next: 8 }
+  ]},
+  { type:'her', delay:1000, text:'احبك\nحيل\n حيييل' },
+  { type:'him', delay:1800, text:' تعمدت اخلي الطريق هذا ماله نهايه علشان اقولج لو انتهى هذا الطريق ينتهي حبي لج\nبس ماله نهايه مهما حاولتي مو انا الي اخترت الطريق هذا ولا انتي اخترتيه\nانكتب لنا وقلبي وقلبج اختاره ولا كان سوء اختيار' },
+  { type:'him', delay:1400, text:'وبعيونج شفت طعم كل الحب والحنان ماعمري شكيت منهم\nقبل تدخلين حياتي ما كنت اظن اني محتاج احد بس الحين ؟ وجودج فرق معاي وليتني من زمان مختارج وصارت كل كلمه وكل مكان يذكرني فيج\nوحتى وانتي ماكنتي فيه معاي بس كنتي على بالي ومرافقتني وحتى مستقبلي الي ما ادري وين ولا شلون بيصير الا انه ما اعرف منه ولا اذكر منه شيء غيرج ' },
+  { type:'choices', question:'', options:[
+    { text:'ازنطني', next: 12 },
+    { text:'علقني', next: 12 },
+    { text:'', next: 12 }
+  ]},
+  { type:'him', delay:1000, text:'ممكن الرساله ماتكون كامله ولا مثل ما انا ابيها بس انا متاكد بيوصل لج شعوري \nعسى ربي لايحرمني منج وابي تحطين ببالج شيء اني دايما راح اكون معاج وضد الكل انا معاج\n\n✦' },
+  { type:'her', delay:2000, text:'اهخ فحلي\nاموت فيك مولاي✦' },
+  { type:'ending' }
+];
+
+// Progress dots
+const totalSteps = SCRIPT.filter(s=>s.type!=='choices' && s.type!=='radio').length;
+const dotsEl = $('progressDots');
+for(let i=0;i<totalSteps;i++){ const d=document.createElement('div'); d.className='prog-dot'; dotsEl.appendChild(d); }
+let doneCount=0;
+function markDot(){ const dots=dotsEl.querySelectorAll('.prog-dot'); if(doneCount<dots.length) dots[doneCount++].classList.add('done'); }
+
+// Audio setup
+const ambienceAudio = $('ambienceAudio');
+const songAudio = $('songAudio');
+const radioClick = $('radioClickAudio');
+ambienceAudio.volume = 0; songAudio.volume = 0; if(radioClick) radioClick.volume = 0.6;
+function fadeAudio(el, targetVol, duration){
+  const start = el.volume, diff = targetVol - start, steps = 60, interval = duration / steps;
+  let step = 0; const t = setInterval(()=>{ step++; el.volume = Math.max(0,Math.min(1, start + diff*(step/steps))); if(step>=steps){ el.volume=targetVol; clearInterval(t); } }, interval);
+}
+
+// Bubble functions
+const wrap = $('bubbleWrap');
+function addBubble(side, htmlContent, withCursor){
+  const div=document.createElement('div'); div.className=side==='him'?'msg-him':'msg-her';
+  const nameDiv=document.createElement('div'); nameDiv.className=side==='him'?'msg-name-him':'msg-name-her';
+  nameDiv.textContent=side==='him'?'عيسى':'فرح';
+  const pEl=document.createElement('p'); pEl.innerHTML=htmlContent+(withCursor?'<span class="tcur"></span>':'');
+  div.appendChild(nameDiv); div.appendChild(pEl); wrap.appendChild(div);
+  requestAnimationFrame(()=> requestAnimationFrame(()=> div.classList.add('show')));
+  return pEl;
+}
+function addTypingIndicator(side){
+  const div=document.createElement('div'); div.className=side==='him'?'msg-him':'msg-her';
+  div.style.padding='10px 16px'; div.innerHTML='<div class="typing-indicator"><span></span><span></span><span></span></div>';
+  wrap.appendChild(div); requestAnimationFrame(()=>requestAnimationFrame(()=>div.classList.add('show')));
+  return div;
+}
+function typeText(pEl, text, speed, onDone){
+  const lines=text.split('\n'); let li=0,ci=0,node=null; const cursor=pEl.querySelector('.tcur');
+  function tick(){
+    if(li>=lines.length){ if(cursor) cursor.style.display='none'; if(onDone) onDone(); return; }
+    const line=lines[li];
+    if(ci===0){ if(li>0){ const br=document.createElement('br'); pEl.insertBefore(br, cursor||null); } node=document.createTextNode(''); pEl.insertBefore(node, cursor||null); }
+    if(ci<line.length){ node.textContent+=line[ci]; ci++; typeTimer=setTimeout(tick, speed+Math.random()*30); }
+    else { li++;ci=0;node=null; typeTimer=setTimeout(tick,400); }
+  }
+  tick();
+}
+
+// Choices
+const choicesEl=$('choicesEl');
+function showChoices(options, onChoice){
+choicesEl.style.pointerEvents = 'auto';
+  choicesEl.innerHTML='';
+  options.forEach(opt=>{
+    const btn=document.createElement('button'); btn.className='choice-btn'; btn.textContent=opt.text;
+    btn.addEventListener('click',()=>{
+    choicesEl.style.pointerEvents='none';
+      choicesEl.classList.remove('show'); choicesEl.style.pointerEvents='none';
+      setTimeout(()=>{ choicesEl.innerHTML=''; },400);
+      setTimeout(()=>{
+        const p=addBubble('her', '', true);
+        typeText(p, opt.text, 60, ()=>{ markDot(); setTimeout(()=>{ if(onChoice) onChoice(opt.next); }, 800); });
+      },300);
+    });
+    choicesEl.appendChild(btn);
+  });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>choicesEl.classList.add('show')));
+}
+
+// ===== RADIO MODAL =====
+function buildRadioModal(){
+  // Grille
+  const grille = $('grilleLinesModal');
+  for(let c=0;c<18;c++){ const col=document.createElement('div'); col.className='grille-col';
+    for(let r=0;r<6;r++){ const dot=document.createElement('div'); dot.className='grille-dot'; col.appendChild(dot); }
+    grille.appendChild(col);
+  }
+  // Signal bars
+  const sigBars = $('sigBarsModal');
+  for(let i=0;i<4;i++){ const b=document.createElement('div'); b.className='sig-bar'; b.style.height=(8+i*4)+'px'; sigBars.appendChild(b); }
+  // Scale
+  const scaleTrk = $('scaleTrackModal');
+  [88,92,96,100,104,108].forEach(f=>{
+    for(let s=0;s<3;s++){ const m=document.createElement('div'); m.className='scale-mark';
+      const line=document.createElement('div'); line.className='line '+(s===0?'tall':'short'); m.appendChild(line);
+      if(s===0){ const lbl=document.createElement('div'); lbl.className='freq-label'; lbl.textContent=f; m.appendChild(lbl); }
+      scaleTrk.appendChild(m);
+    }
+  });
+}
+
+const STATIONS = [
+  { freq: '88.4', name: 'نبض المسافات', msg: 'يا احلى اقدار العمر والبدايات\nكان الطريق بلهفه الشوق يحيينا\nوامشي مع طيفج على درب الامنيات\nكان الهوى من اول احساس يروينا✦' },
+  { freq: '93.7', name: 'همس المشوار', msg: 'ب "همس المشوار" ضاعت علومي\nيوم التقت عيني ب عينج تاه فكري\nيا بلسم من شوفته ضاع فكري\n انا بغيرج.. كني ما عشت ولا نمت✦' },
+  { freq: '98.1', name: 'مرايه الطريق', msg: 'اشوف وجهج ب "مرايا الطريق" ضي\n  واتنفس فرح.. وانتي بخيالي   \nبيني وبينج عهد "ما دامني حي"\n تبقين الوحيده الي ساكنه ب دلالي✦' },
+  { freq: '103.5', name: 'اوتار الطريق', msg: 'عزفت لج ب "اوتار الطريق" احلى الحان\nوقلبي معاج يرقص مع كل دقه\nيا من سرقتي الفكر في كل الازمان\nدرب يضمج.. والله اني احبه' }
+];
+
+let currentStation = 0;
+function initRadioModal(){
+  const channelsDiv = $('channelsModal');
+  STATIONS.forEach((st, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'ch-btn';
+    btn.textContent = st.name;
+    btn.onclick = () => selectStation(idx);
+    channelsDiv.appendChild(btn);
+  });
+  selectStation(0);
+}
+function selectStation(idx){
+  currentStation = idx;
+  const st = STATIONS[idx];
+  $('freqNumModal').textContent = st.freq;
+  $('stationNameModal').textContent = st.name;
+  $('stationMsgModal').innerHTML = st.msg.replace(/\n/g,'<br>');
+  // Move needle effect
+  const pct = idx / (STATIONS.length-1);
+  const scaleTrk = $('scaleTrackModal');
+  const totalW = scaleTrk.scrollWidth;
+  const visW = scaleTrk.parentElement.clientWidth;
+  const offset = -(pct * (totalW - visW));
+  scaleTrk.style.transform = `translateX(${offset}px)`;
+  // Update active button
+  document.querySelectorAll('#channelsModal .ch-btn').forEach((btn,i)=>{ btn.classList.toggle('active', i===idx); });
+  // Signal animation
+  const sigBars = document.querySelectorAll('#sigBarsModal .sig-bar');
+  sigBars.forEach((bar,i)=>{ bar.classList.toggle('active', i<3+Math.floor(Math.random()*2)); });
+}
+let radioAudioPlaying = false;
+function showRadioAndWait(){
+  return new Promise((resolve) => {
+    radioResolve = resolve;
+    const modal = $('radioModal');
+    
+    // تعطيل الخيارات مؤقتاً أثناء ظهور الراديو
+    choicesEl.style.pointerEvents = 'none';
+    
+    modal.classList.add('show');
+    // Play radio click sound
+    if(radioClick){ radioClick.currentTime = 0; radioClick.play().catch(()=>{}); }
+    // Setup play button
+    const playBtn = $('playBtnModal');
+   const newPlayHandler = () => {
+  if(!radioAudioPlaying){
+    // 🔇 إيقاف أي صوت ثاني مؤقتاً (اختياري)
+    
+    // 🔊 1. تشغيل صوت الراديو أولاً (radio.mp3)
+    if(radioClick){
+      radioClick.currentTime = 0;
+      radioClick.volume = 0.65;
+      radioClick.play().catch(()=>{});
+    }
+    
+    // ⏱️ 2. انتظر حتى يخلص صوت الراديو (1.2 ثانية) ثم شغل الأغنية
+    setTimeout(() => {
+      // الأغنية تبدأ fade in
+      fadeAudio(ambienceAudio, 0.18, 2500);
+      songAudio.play().catch(()=>{});
+      fadeAudio(songAudio, 0.65, 3500);
+      
+      // إظهار الموجات الصوتية
+      $('ambientWave').classList.add('show');
+      document.querySelectorAll('.aw-bar').forEach(b=>b.classList.add('play'));
+    }, 1200); // <- هنا الوقت اللي يخلص فيه صوت الراديو
+    
+    radioAudioPlaying = true;
+    playBtn.classList.add('playing');
+    playBtn.textContent = '⏸';
+    
+    // إغلاق الراديو بعد بدء الأغنية بشوي
+    setTimeout(()=>{
+      const modal = $('radioModal');
+      modal.classList.remove('show');
+      // إعادة تمكين الخيارات بعد إغلاق الراديو
+      setTimeout(()=>{ 
+        choicesEl.style.pointerEvents = 'auto';
+        if(radioResolve) radioResolve(); 
+      }, 500);
+    }, 2800);
+    
+  } else {
+    songAudio.pause();
+    radioAudioPlaying = false;
+    playBtn.classList.remove('playing');
+    playBtn.textContent = '▶';
+  }
+};
+    playBtn.onclick = newPlayHandler;
+    // Volume knob
+    const volKnob = $('volKnobModal');
+    let volAngle = -90, volDrag=false, volStartY=0, volStartA=0;
+    function updateVol(angle){ volAngle=Math.max(-120,Math.min(120,angle)); volKnob.style.setProperty('--vol-angle', volAngle+'deg'); songAudio.volume = (volAngle+120)/240; }
+    updateVol(-30);
+    volKnob.onmousedown = (e)=>{ volDrag=true; volStartY=e.clientY; volStartA=volAngle; e.preventDefault(); };
+    window.onmousemove = (e)=>{ if(volDrag) updateVol(volStartA + (volStartY-e.clientY)*1.2); };
+    window.onmouseup = ()=>volDrag=false;
+  });
+}
+
+// ===== RUN STEP =====
+function runStep(idx){
+  if(idx >= SCRIPT.length) return;
+  const step = SCRIPT[idx];
+  const bubbles = wrap.querySelectorAll('.msg-him,.msg-her');
+  if(bubbles.length>5){ for(let i=0;i<bubbles.length-5;i++){ bubbles[i].style.transition='opacity 0.5s'; bubbles[i].style.opacity='0'; setTimeout(()=>bubbles[i].remove(),500); } }
+  
+  if(step.type === 'him'){
+    const typingDiv = addTypingIndicator('him');
+    setTimeout(()=>{
+      typingDiv.remove();
+      const p = addBubble('him','',true);
+      typeText(p, step.text, 52, ()=>{ markDot(); setTimeout(()=>runStep(idx+1), step.delay||1200); });
+    }, step.delay||800);
+  }
+  else if(step.type === 'her'){
+    const typingDiv = addTypingIndicator('her');
+    setTimeout(()=>{
+      typingDiv.remove();
+      const p = addBubble('her','',true);
+      typeText(p, step.text, 56, ()=>{ markDot(); setTimeout(()=>runStep(idx+1), step.delay||1200); });
+    }, step.delay||1000);
+  }
+  else if(step.type === 'ending'){
+  // إخفاء الفقاعات
+  setTimeout(()=>{
+    wrap.style.transition = 'opacity 2s ease';
+    wrap.style.opacity = '0';
+  }, 1000);
+
+  // تشغيل أغنية النهاية
+  const endAudio = document.getElementById('endingAudio');
+  fadeAudio(songAudio, 0, 2000);
+  setTimeout(()=>{
+    endAudio.volume = 0;
+    endAudio.play().catch(()=>{});
+    fadeAudio(endAudio, 0.7, 3000);
+  }, 1500);
+
+  // رسالة النهاية
+  setTimeout(()=>{
+    const msg = document.createElement('div');
+    msg.style.cssText = `
+      position:fixed;inset:0;z-index:80;
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;gap:16px;
+      opacity:0;transition:opacity 2s ease;
+      pointer-events:none;
+    `;
+    msg.innerHTML = `
+      <div style="font-family:'Scheherazade New',serif;font-size:clamp(1.2rem,3vw,1.8rem);
+        color:rgba(255,240,220,0.85);text-align:center;line-height:2;direction:rtl;
+        text-shadow:0 0 30px rgba(255,200,100,0.3);">
+            واخر شيء حاب اقولج<br>احبجbr>وانتي احلى شيء بحياه عيتى✦
+      </div>
+    `;
+    document.body.appendChild(msg);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ msg.style.opacity='1'; }));
+
+    // بعد ما تظهر الرسالة → fade to black ثم ترجع الطريق
+    setTimeout(()=>{
+      msg.style.opacity = '0';
+      const blackOut = document.createElement('div');
+      blackOut.style.cssText = `
+        position:fixed;inset:0;z-index:75;background:#000;
+        opacity:0;transition:opacity 2s ease;pointer-events:none;
+      `;
+      document.body.appendChild(blackOut);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ blackOut.style.opacity='1'; }));
+
+      // بعد الـ fade to black يختفي كل شيء ويبقى الطريق
+      setTimeout(()=>{
+        msg.remove();
+        wrap.style.opacity = '0';
+        document.getElementById('choicesEl').style.opacity = '0';
+        // fade back in للطريق
+        setTimeout(()=>{
+          blackOut.style.opacity = '0';
+          setTimeout(()=>blackOut.remove(), 2500);
+          // تاريخ البداية
+setTimeout(()=>{
+  const dateEl = document.createElement('div');
+  dateEl.style.cssText = `
+    position:fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+    font-family:'Courier New', monospace;
+    font-size: 0.72rem;
+    color: rgba(255,200,100,0.35);
+    letter-spacing: 0.2em;
+    opacity: 0;
+    transition: opacity 3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  `;
+  dateEl.textContent = '— 2026/4/18 —';
+  document.body.appendChild(dateEl);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    dateEl.style.opacity = '1';
+  }));
+}, 2000);
+        }, 1500);
+      }, 2000);
+
+    }, 5000); // الرسالة تبقى 5 ثواني
+
+  }, 2500);
+} 
+
+
+  else if(step.type === 'choices'){
+    showChoices(step.options, (next)=>{
+      if(next === 'radio'){
+        showRadioAndWait().then(()=>{ runStep(5); });
+      } else { runStep(next); }
+    });
+  }
+}
+
+// ===== INTRO =====
+function startExperience(){
+  setTimeout(()=>{ $('barTop').classList.add('open'); $('barBot').classList.add('open'); }, 800);
+  setTimeout(()=>{ $('openingText').classList.add('show'); setTimeout(()=>$('ol1').classList.add('lit'), 300); setTimeout(()=>$('ol2').classList.add('lit'), 1200); }, 1200);
+  setTimeout(()=>{ $('fadeOverlay').classList.add('gone'); }, 1800);
+  setTimeout(()=>{ ambienceAudio.play().catch(()=>{}); fadeAudio(ambienceAudio, 0.45, 2000); }, 2000);
+  setTimeout(()=>{ $('openingText').classList.add('hide'); $('openingText').classList.remove('show'); }, 5000);
+  setTimeout(()=>{ runStep(0); }, 6200);
+}
+
+// ===== BOOT =====
+buildRadioModal();
+initRadioModal();
+const bootScreen=document.createElement('div');
+bootScreen.style.cssText=`position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;cursor:pointer;`;
+bootScreen.innerHTML=`<div style="font-family:'Scheherazade New',serif;font-size:clamp(1.4rem,4vw,2rem);color:rgba(255,240,220,0.8);animation:bootPulse 2s ease-in-out infinite">رحلتنا</div><div style="font-family:'Amiri',serif;font-size:0.8rem;color:rgba(255,200,100,0.45);">اضغطي</div><style>@keyframes bootPulse{0%,100%{opacity:0.6}50%{opacity:1}}</style>`;
+document.body.appendChild(bootScreen);
+bootScreen.addEventListener('click',()=>{ bootScreen.style.transition='opacity 1s ease'; bootScreen.style.opacity='0'; setTimeout(()=>bootScreen.remove(),1000); startExperience(); },{once:true});
+</script>
+<audio id="endingAudio" src="ending.mp3" loop preload="auto"></audio>
+</body>
+</html>
